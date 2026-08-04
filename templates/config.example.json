@@ -1,0 +1,76 @@
+{
+  "_comment": "Copy to your repository root as graph-review.config.json and replace every path below with your own. The paths here are placeholders; a self-check against them fails until they name real files. Write the usage rule into your own development rules so it binds.",
+  "budget": {
+    "_comment": "The weekly limit is the scarce resource, so the ladder is DATA, not judgement. default MUST be cheap — the self-check refuses anything else. A full run is bought, never inherited by qualifying.",
+    "default": "cheap",
+    "full_triggers": [
+      "money_paths touched",
+      "architect mark [GRAPH-REVIEW:FULL]"
+    ],
+    "cheap": {
+      "reviewers": 2,
+      "engine_2": "sentinels touched by this diff only",
+      "residual_estimate": false
+    },
+    "full": {
+      "reviewers": 8,
+      "second_echelon": true,
+      "engine_2": "whole map",
+      "residual_estimate": true
+    }
+  },
+  "sentinel_paths": {
+    "_comment": "Files where WHAT NEEDS WHAT is declared. Touching any makes Engine 2 mandatory. Keep it short — forty paths means Engine 2 runs every time, which is the same as having no rule. Guarded by guards/sentinel-paths.test.ts.",
+    "paths": [
+      "src/billing/ledger.ts",
+      "src/billing/refunds.ts",
+      "src/payments/gateways.ts",
+      "src/payments/webhooks.ts",
+      "src/access/permissions.ts",
+      "src/access/roles.ts",
+      "db/migrations/"
+    ]
+  },
+  "money_paths": {
+    "_comment": "Touching any of these makes a FULL run mandatory and requires executable reproduction for every breaks_money finding.",
+    "paths": [
+      "src/billing/",
+      "src/payments/"
+    ]
+  },
+  "fanout": {
+    "second_echelon_trigger": 3,
+    "second_echelon_size": 4
+  },
+  "engine_2": {
+    "force_after_n_slices": 5,
+    "default_strength": 2
+  },
+  "engine_3": {
+    "_comment": "data_dump is required whenever a migration contains a repair block — a schema-only drill cannot find a repair that collides with real rows.",
+    "schema_dump": "pg_dump --schema-only --no-owner --no-privileges",
+    "data_dump": "pg_dump --no-owner --no-privileges",
+    "drill_database": "drill"
+  },
+  "killer": {
+    "_comment": "Two tiers. Tier 1 (read the code at the write anchor) runs on every finding. Tier 2 (executable reproduction) ONLY when the finding survived tier 1 AND touches a sentinel or money path — both, not either. Otherwise the kill phase eats the limit it exists to protect.",
+    "tier_2_requires": [
+      "survived_tier_1",
+      "touches sentinel_paths or money_paths"
+    ]
+  },
+  "quarantine": {
+    "_comment": "Confirmed money/sentinel findings land here as SKIPPED failing tests carrying their finding id (GR-YYYY-MM-DD-N), un-skipped in the same commit as the fix. The finding and its regression test are one artefact.",
+    "directory": "tests/quarantine",
+    "id_pattern": "GR-YYYY-MM-DD-N"
+  },
+  "stopping": {
+    "residual_threshold": 1,
+    "consecutive_sweeps_below": 2
+  },
+  "_test_command_comment": "Carry the suite's own preconditions in the command. test_command_must_match is an optional regular expression the self-check requires test_command to satisfy — use it to pin a precondition (a real database, a seed) so it cannot be dropped quietly. Delete the field if you have none.",
+  "test_command": "npm test",
+  "test_command_must_match": "",
+  "e2e_command": "npm run test:e2e",
+  "state_file": "graph-review-state.json"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ia-graph-review",
+  "version": "1.1.0",
+  "description": "Three-engine defect hunt: fan-out reviewers over the diff, a sweep over reachable states, and a forward-and-rollback migration drill. Agents find, the owner decides, one worker fixes.",
+  "author": {
+    "name": "Intelligence Art",
+    "email": "info@intelligenceart.ai"
+  },
+  "license": "MIT"
+}

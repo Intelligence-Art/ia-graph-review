@@ -1,0 +1,39 @@
+A toy diff for a smoke run. Apply it inside examples/toy-project with
+
+    git apply ../toy-diff.patch
+
+then point the skill at it. It is small enough to review by hand, which is the
+point: you can check the skill's answer against your own.
+
+Three things are wrong with it, one per engine. They are listed at the bottom of
+examples/README.md — read the skill's report first.
+
+--- a/src/payments/webhooks.ts
++++ b/src/payments/webhooks.ts
+@@ -1,6 +1,25 @@
+ import { settle } from "../billing/ledger";
+
+ /** Toy webhook handler. A real one needs an idempotency key — see charter 4. */
+ export function onPaid(reservationId: string): number {
+   return settle(reservationId);
+ }
++
++/**
++ * The gateway retries a webhook until it gets a 2xx, so we retry on our side
++ * too. Three attempts, then give up and let the gateway redeliver.
++ */
++export function onPaidWithRetry(reservationId: string): number {
++  let lastError: unknown;
++
++  for (let attempt = 0; attempt < 3; attempt += 1) {
++    try {
++      return onPaid(reservationId);
++    } catch (error) {
++      lastError = error;
++    }
++  }
++
++  // Reported as a failed payment. The money may already have moved.
++  console.error(`payment ${reservationId} failed after 3 attempts`, lastError);
++  throw lastError;
++}

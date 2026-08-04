@@ -1,0 +1,13 @@
+.DS_Store
+node_modules/
+
+# The private charter overlay. A project's sharpened charters name its own
+# incidents, which is exactly what makes them work and exactly what must not
+# be published. Kept local, merged at run time.
+charters.local.md
+
+# A consuming project's real configuration and run state. Anchored at the root
+# on purpose: examples/toy-project ships its own filled-in pair, and they must
+# be committed or the documented first run has nothing to read.
+/graph-review.config.json
+/graph-review-state.json

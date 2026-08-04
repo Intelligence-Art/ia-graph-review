@@ -1,0 +1,14 @@
+{
+  "name": "intelligence-art",
+  "owner": {
+    "name": "Intelligence Art",
+    "email": "info@intelligenceart.ai"
+  },
+  "plugins": [
+    {
+      "name": "ia-graph-review",
+      "source": "./",
+      "description": "Three-engine defect hunt before merge: fan-out over the diff, a sweep over reachable states, and a migration drill against a copy of production. Every finding is attacked by a killer that defaults to refuted."
+    }
+  ]
+}
