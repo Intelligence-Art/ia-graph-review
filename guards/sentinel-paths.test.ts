@@ -25,6 +25,8 @@ type Config = {
   sentinel_paths?: { paths?: string[] };
   money_paths?: { paths?: string[] };
   test_command?: string;
+  /** A regular expression the test command must satisfy. See config.md. */
+  test_command_must_match?: string;
 };
 
 const CONFIG_PATH = "graph-review.config.json";

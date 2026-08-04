@@ -214,6 +214,24 @@ function checkState(config) {
     }
   }
 
+  // A budget ladder nobody measures against a real run is folklore. `subagents`
+  // is the measured figure; `main_loop` must be PRESENT and null, because the
+  // main loop genuinely cannot measure its own usage and an absent key cannot
+  // be told from a forgotten one.
+  for (const run of s.runs ?? []) {
+    const name = run.name ?? run.slice ?? "?";
+    if (!run.tokens || typeof run.tokens !== "object") {
+      problem(path, `run "${name}" records no token cost — the budget ladder has nothing to be checked against`);
+      continue;
+    }
+    if (typeof run.tokens.subagents !== "number") {
+      problem(path, `run "${name}" has tokens.subagents that is not a number — this is the one figure that is actually measurable`);
+    }
+    if (!("main_loop" in run.tokens)) {
+      problem(path, `run "${name}" omits tokens.main_loop — record it as null rather than leaving it out, so an unmeasurable figure cannot be mistaken for a forgotten one`);
+    }
+  }
+
   notes.push(
     `state: ${s.runs?.length ?? 0} run(s), ${s.closed_classes?.length ?? 0} closed class(es), ${s.discarded_findings?.length ?? 0} discarded`,
   );
