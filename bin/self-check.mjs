@@ -218,6 +218,8 @@ function checkState(config) {
   // is the measured figure; `main_loop` must be PRESENT and null, because the
   // main loop genuinely cannot measure its own usage and an absent key cannot
   // be told from a forgotten one.
+  const LEGACY_BEFORE = "2026-10-04";
+  let legacyUnmeasured = 0;
   for (const run of s.runs ?? []) {
     const name = run.name ?? run.slice ?? "?";
     if (!run.tokens || typeof run.tokens !== "object") {
@@ -225,7 +227,17 @@ function checkState(config) {
       continue;
     }
     if (typeof run.tokens.subagents !== "number") {
-      problem(path, `run "${name}" has tokens.subagents that is not a number — this is the one figure that is actually measurable`);
+      // UNMEASURED, LEGACY — the architect's decision of 2026-10-04. Runs
+      // recorded before the figure was demanded carry `null`; no number is
+      // invented for them. A null on a run dated before LEGACY_BEFORE passes
+      // and is counted; from that day on a run must carry its figure. A run
+      // with no date is not legacy: it cannot prove when it was written.
+      const legacy = typeof run.date === "string" && run.date.slice(0, 10) < LEGACY_BEFORE;
+      if (legacy && run.tokens.subagents === null) {
+        legacyUnmeasured += 1;
+      } else {
+        problem(path, `run "${name}" has tokens.subagents that is not a number — this is the one figure that is actually measurable`);
+      }
     }
     if (!("main_loop" in run.tokens)) {
       problem(path, `run "${name}" omits tokens.main_loop — record it as null rather than leaving it out, so an unmeasurable figure cannot be mistaken for a forgotten one`);
@@ -233,7 +245,8 @@ function checkState(config) {
   }
 
   notes.push(
-    `state: ${s.runs?.length ?? 0} run(s), ${s.closed_classes?.length ?? 0} closed class(es), ${s.discarded_findings?.length ?? 0} discarded`,
+    `state: ${s.runs?.length ?? 0} run(s), ${s.closed_classes?.length ?? 0} closed class(es), ${s.discarded_findings?.length ?? 0} discarded` +
+      (legacyUnmeasured ? `, ${legacyUnmeasured} legacy run(s) unmeasured` : ""),
   );
 }
 

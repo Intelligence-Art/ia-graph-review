@@ -7,8 +7,8 @@
 2. **Pick charters** from `charters.md` by what the diff touches. `full` runs all
    eight; `scout` runs the three the table nominates. A charter aimed at
    territory the diff never touched returns invention.
-3. **Spawn one agent per charter, in parallel, with fresh context** — as
-   `general-purpose`: a charter reviewer has no agent type of its own. Fresh is the
+3. **Spawn one agent per charter, in parallel, with fresh context** — each with
+   `subagent_type: ia-reviewer`, its charter in the call's prompt. Fresh is the
    requirement: a reviewer that has seen the author's reasoning inherits the
    author's blind spots.
 4. **Cap output, not attention.** At most five findings each, and "zero" is an

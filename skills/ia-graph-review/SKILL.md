@@ -113,19 +113,21 @@ Procedure: `references/engine-1-fanout.md`
 
 ## Who is spawned as what
 
-Every role that judges, attacks or fixes is spawned BY ITS AGENT TYPE, so it
+Every role — the ones that read, count, judge, attack or fix — is spawned BY
+ITS AGENT TYPE, never as a bare general-purpose agent, so it
 resolves to the project's own definition of that agent (model and tools live
 there, not here). A role spawned without its type runs as whatever the
 session's default subagent is — which is not what the project chose for it.
 
 | role | `subagent_type` |
 |---|---|
-| Engine 1 charter reviewer | `general-purpose` (no type of its own) |
+| Engine 1 charter reviewer (the charter text is the call's prompt) | `ia-reviewer` |
 | Engine 1 second echelon | `ia-second-echelon` |
 | Engine 2, the state sweep | `ia-engine-2` |
 | Engine 3, the migration drill | `ia-engine-3` |
 | killer, one per finding | `ia-killer` |
 | the one worker that fixes | `ia-worker` |
+| an inventory, a census table, a regenerated document | `ia-census` |
 
 If the project defines no such agent, the spawn fails with «agent type not
 found»: say so in the report and stop that role — do not fall back silently.
