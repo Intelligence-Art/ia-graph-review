@@ -24,6 +24,8 @@ that have the problem it was written to fix.
 
 ## The drill
 
+The drill is one agent, spawned with `subagent_type: ia-engine-3`.
+
 ### 1. A copy of the production schema
 
 ```bash

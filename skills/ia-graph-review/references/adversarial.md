@@ -11,7 +11,8 @@ agents**, and the run is not finished without it.
 
 ## The charter
 
-One killer per finding, fresh context, and it is told the following:
+One killer per finding, spawned with `subagent_type: ia-killer`, fresh context,
+and it is told the following:
 
 > You are given one claimed defect. Your job is to **refute** it.
 >

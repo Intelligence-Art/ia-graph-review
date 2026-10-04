@@ -111,6 +111,25 @@ specifically. Width where it earns itself.
 
 Procedure: `references/engine-1-fanout.md`
 
+## Who is spawned as what
+
+Every role that judges, attacks or fixes is spawned BY ITS AGENT TYPE, so it
+resolves to the project's own definition of that agent (model and tools live
+there, not here). A role spawned without its type runs as whatever the
+session's default subagent is — which is not what the project chose for it.
+
+| role | `subagent_type` |
+|---|---|
+| Engine 1 charter reviewer | `general-purpose` (no type of its own) |
+| Engine 1 second echelon | `ia-second-echelon` |
+| Engine 2, the state sweep | `ia-engine-2` |
+| Engine 3, the migration drill | `ia-engine-3` |
+| killer, one per finding | `ia-killer` |
+| the one worker that fixes | `ia-worker` |
+
+If the project defines no such agent, the spawn fails with «agent type not
+found»: say so in the report and stop that role — do not fall back silently.
+
 ## Engine 2 — sweep over reachable states
 
 Engine 2 does not read the diff. It builds a map of what each stage requires,
@@ -149,7 +168,8 @@ Procedure: `references/engine-3-migration.md`
 
 ## The killer round
 
-Every finding, from every engine, goes to a separate agent whose job is to
+Every finding, from every engine, goes to a separate agent — spawned as
+`ia-killer` — whose job is to
 **refute** it — and which returns `refuted` when it cannot decide. Survivors are
 promoted to the list; the rest go to `discarded_findings` in the state file with
 the reason, so the next sweep does not re-litigate them.

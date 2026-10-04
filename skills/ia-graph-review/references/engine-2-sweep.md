@@ -18,6 +18,8 @@ sentinel path touched" is part of the work. Silence reads as "it ran".
 
 ## Procedure
 
+The sweep is one agent, spawned with `subagent_type: ia-engine-2`.
+
 1. **Build the requirement map.** For each stage, what must exist for it to
    succeed: rows, fields, files, permissions, prior states.
 2. **Enumerate the dimensions** that vary independently — the feature switches
