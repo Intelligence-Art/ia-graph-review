@@ -18,6 +18,23 @@
    each spawned with `subagent_type: ia-second-echelon`.
 6. Hand everything to the killer round. Nothing reaches the owner unrefuted.
 
+## A money diff — one reader per area (1.4.0)
+
+When the slice touches `money_paths` and the config carries `money_review`,
+steps 2 and 3 are replaced:
+
+2m. **Pick the areas.** `full` reads every area of `money_review.areas`; a small
+    money diff reads the areas its files fall under (`paths`), two at most, and
+    names any third in the report's «for the night» line.
+3m. **Spawn one agent per area, in parallel, with fresh context** — each with
+    `subagent_type: <money_review.reader>`, and in its prompt: the range, its
+    ONE area, and every charter of that area verbatim from `charters.md`. No
+    charter is spawned as its own agent on a money diff, and no agent of a
+    money run is anything but the model the definitions name for it.
+
+Before step 6 the main session **merges the findings by root cause** — the
+write anchor `WHERE` is the key — and hands the killer round the UNIQUE list.
+
 ## What each reviewer is told
 
 - the diff range, and that it may read anything in the repository;

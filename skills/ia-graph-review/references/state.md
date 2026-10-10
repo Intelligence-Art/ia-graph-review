@@ -41,6 +41,28 @@ run** — not an aspiration in a document.
 }
 ```
 
+## A run says whether it was a money run (1.4.0)
+
+Every run carries `"money": true | false`. A money run also carries who read
+it and what the dedupe did — the self-check refuses a money run with an agent
+that is not Opus, and one with more killers than unique findings:
+
+```json
+{
+  "money": true,
+  "agents": [
+    { "role": "reader R1", "agent": "ia-money-reader", "model": "opus", "count": 1, "tokens": 0 },
+    { "role": "reader R2", "agent": "ia-money-reader", "model": "opus", "count": 1, "tokens": 0 },
+    { "role": "Engine 2", "agent": "ia-engine-2", "model": "opus", "count": 1, "tokens": 0 },
+    { "role": "killer", "agent": "ia-killer", "model": "opus", "count": 4, "tokens": 0 }
+  ],
+  "dedupe": { "raw": 9, "unique": 4, "killers": 4 }
+}
+```
+
+`tokens` is recorded per role, never as one merged figure — it is what makes
+two ways of reading a money diff comparable.
+
 ## What each entry is for
 
 `closed_classes` stops reviewers re-reporting a shape a guard already enumerates.

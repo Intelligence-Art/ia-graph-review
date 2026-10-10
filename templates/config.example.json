@@ -19,6 +19,64 @@
       "residual_estimate": true
     }
   },
+  "money_review": {
+    "_comment": "Optional. On a diff that touches money_paths each AREA is read by one `reader` agent carrying that area's charters; every charter belongs to exactly one area; findings are merged by root cause before the killers. Without this block a money diff is read by the charter fan-out.",
+    "reader": "ia-money-reader",
+    "model": "opus",
+    "areas": {
+      "R1": {
+        "name": "money moves",
+        "charters": [
+          2,
+          3,
+          4
+        ],
+        "paths": [
+          "src/billing/"
+        ]
+      },
+      "R2": {
+        "name": "who may",
+        "charters": [
+          5,
+          6
+        ],
+        "paths": [
+          "src/access/"
+        ]
+      },
+      "R3": {
+        "name": "what the person sees",
+        "charters": [
+          1,
+          7,
+          8
+        ],
+        "paths": [
+          "src/app/"
+        ]
+      }
+    },
+    "small": {
+      "max_source_files": 5,
+      "max_migrations": 1,
+      "readers": "the areas the diff touches, two at most — the third is named «for the night»",
+      "engine_2": false,
+      "killers": 1
+    },
+    "full": {
+      "readers": [
+        "R1",
+        "R2",
+        "R3"
+      ],
+      "engine_2": true,
+      "engine_3": "in full, when the diff carries a migration",
+      "killers": "one per UNIQUE finding after the dedupe",
+      "second_echelon": "the fix diff only, when the fix touched money (ia-money-pass 4.7)"
+    },
+    "every_agent_model": "opus"
+  },
   "sentinel_paths": {
     "_comment": "Files where WHAT NEEDS WHAT is declared. Touching any makes Engine 2 mandatory. Keep it short — forty paths means Engine 2 runs every time, which is the same as having no rule. Guarded by guards/sentinel-paths.test.ts.",
     "paths": [

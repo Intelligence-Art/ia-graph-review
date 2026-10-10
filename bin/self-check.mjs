@@ -139,7 +139,55 @@ function checkConfig() {
     problem(CONFIG_PATH, "quarantine.directory is unset — money findings have nowhere to land as failing tests");
   }
 
+  checkMoneyReview(c);
+
   return c;
+}
+
+/* ─────────────── 2b. the money review: three areas, Opus only ────────────── */
+
+// The charters are the checklist of a money review; the AREAS are who reads
+// it. A charter that sits in no area is never read on a money diff, and a
+// charter in two areas is read twice and paid for twice — both are silent, so
+// both are checked here. `money_review` is optional: a project without it runs
+// the charter fan-out on every diff, as before 1.4.0.
+const CHARTER_COUNT = 8;
+
+function checkMoneyReview(c) {
+  const m = c.money_review;
+  if (m === undefined) {
+    notes.push("money_review: not configured — a money diff is read by the charter fan-out");
+    return;
+  }
+  if (typeof m !== "object" || m === null) return problem(CONFIG_PATH, "money_review must be an object");
+  if (typeof m.reader !== "string" || m.reader.trim() === "") {
+    problem(CONFIG_PATH, "money_review.reader is unset — the money fan-out has no agent definition to spawn by name");
+  }
+  if (m.model !== "opus") {
+    problem(CONFIG_PATH, `money_review.model is ${JSON.stringify(m.model)} — a money diff is read by Opus only`);
+  }
+  const areas = m.areas && typeof m.areas === "object" ? Object.entries(m.areas) : [];
+  if (areas.length === 0) return problem(CONFIG_PATH, "money_review.areas is empty — nobody would read a money diff");
+  const seen = new Map();
+  for (const [key, area] of areas) {
+    if (!Array.isArray(area?.charters) || area.charters.length === 0) {
+      problem(CONFIG_PATH, `money_review.areas.${key} carries no charters — a reader with no checklist`);
+      continue;
+    }
+    for (const charter of area.charters) {
+      if (!Number.isInteger(charter) || charter < 1 || charter > CHARTER_COUNT) {
+        problem(CONFIG_PATH, `money_review.areas.${key} names charter ${JSON.stringify(charter)} — the charters are 1…${CHARTER_COUNT}`);
+        continue;
+      }
+      seen.set(charter, [...(seen.get(charter) ?? []), key]);
+    }
+  }
+  for (let charter = 1; charter <= CHARTER_COUNT; charter++) {
+    const owners = seen.get(charter) ?? [];
+    if (owners.length === 0) problem(CONFIG_PATH, `charter ${charter} belongs to no area of money_review — it would never be read on a money diff`);
+    if (owners.length > 1) problem(CONFIG_PATH, `charter ${charter} belongs to ${owners.join(" and ")} — each charter belongs to exactly ONE area`);
+  }
+  notes.push(`money_review: ${areas.map(([key, area]) => `${key} ← ${(area?.charters ?? []).join(",")}`).join(" · ")}`);
 }
 
 /* ─────────────────────── 3. the paths the rules point at ─────────────────── */
@@ -244,10 +292,49 @@ function checkState(config) {
     }
   }
 
+  // A MONEY RUN IS READ BY OPUS, AND ITS KILLERS FOLLOW THE DEDUPE — 1.4.0.
+  // A run recorded after MONEY_SHAPE_FROM says whether it was a money run; a
+  // money run lists every agent it spawned with its model, and the three
+  // figures of the dedupe. One Sonnet agent on a money run, or more killers
+  // than unique findings, is a run that did not follow the law it reports.
+  for (const run of s.runs ?? []) {
+    const name = run.name ?? run.slice ?? "?";
+    const dated = typeof run.date === "string" ? run.date.slice(0, 10) : "";
+    if (!("money" in run)) {
+      if (dated > MONEY_SHAPE_FROM) problem(path, `run "${name}" does not say whether it was a money run — record money: true or false`);
+      continue;
+    }
+    for (const what of moneyRunProblems(run)) problem(path, `run "${name}" ${what}`);
+  }
+
   notes.push(
     `state: ${s.runs?.length ?? 0} run(s), ${s.closed_classes?.length ?? 0} closed class(es), ${s.discarded_findings?.length ?? 0} discarded` +
       (legacyUnmeasured ? `, ${legacyUnmeasured} legacy run(s) unmeasured` : ""),
   );
+}
+
+/** Runs dated after this day carry `money`; the runs of that day and before are the old model. */
+const MONEY_SHAPE_FROM = "2026-10-10";
+
+/** What is wrong with one run's money shape — empty when nothing is. */
+export function moneyRunProblems(run) {
+  const out = [];
+  if (typeof run.money !== "boolean") return ["has a money field that is not true or false"];
+  if (!run.money) return out;
+  const agents = Array.isArray(run.agents) ? run.agents : null;
+  if (!agents || agents.length === 0) return ["is a money run that lists no agents — nothing shows who read it"];
+  for (const agent of agents) {
+    const model = String(agent?.model ?? "").toLowerCase();
+    if (model !== "opus") out.push(`is a money run with ${agent?.agent ?? agent?.role ?? "an agent"} on ${model || "no named model"} — a money diff is read by Opus only`);
+  }
+  const d = run.dedupe;
+  if (!d || ![d.raw, d.unique, d.killers].every((n) => Number.isInteger(n) && n >= 0)) {
+    out.push("is a money run without its dedupe — record dedupe: { raw, unique, killers }");
+    return out;
+  }
+  if (d.unique > d.raw) out.push(`records ${d.unique} unique findings out of ${d.raw} raw — the dedupe cannot add findings`);
+  if (d.killers > d.unique) out.push(`spawned ${d.killers} killers for ${d.unique} unique findings — one killer per UNIQUE finding, never one per report line`);
+  return out;
 }
 
 /* ──────────────────────── 5. quarantined regressions ─────────────────────── */

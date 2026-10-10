@@ -4,6 +4,26 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] — 2026-10-10
+
+### Added
+
+- **A money diff is read by area, not by charter.** With `money_review` in the
+  config, Engine 1 on a diff that touches `money_paths` spawns one reader per
+  AREA (the config's `reader`, carrying that area's charters) instead of one
+  reviewer per charter. Every charter belongs to exactly one area. A non-money
+  review is unchanged.
+- **Dedupe before the killers.** Findings are merged by root cause before the
+  killer round; one killer per unique finding. A run records
+  `dedupe: { raw, unique, killers }`.
+- **`bin/plan.mjs`** — prints the fan-out a diff would buy, with the model each
+  agent definition names, before any agent is spent; exits 1 if a money plan
+  would put anything but Opus on the diff.
+- **Self-check:** `money_review` assigns every charter to exactly one area; a
+  run recorded after 2026-10-10 says whether it was a money run; a money run
+  with an agent that is not Opus, or with more killers than unique findings,
+  fails.
+
 ## [1.1.0] — 2026-08-04
 
 First public release.

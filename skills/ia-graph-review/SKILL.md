@@ -121,16 +121,47 @@ session's default subagent is — which is not what the project chose for it.
 
 | role | `subagent_type` |
 |---|---|
-| Engine 1 charter reviewer (the charter text is the call's prompt) | `ia-reviewer` |
+| Engine 1 charter reviewer on a NON-money diff (the charter text is the call's prompt) | `ia-reviewer` |
+| the reader of ONE area of a MONEY diff (its area and that area's charters are the call's prompt) | the config's `money_review.reader` — `ia-money-reader` |
 | Engine 1 second echelon | `ia-second-echelon` |
 | Engine 2, the state sweep | `ia-engine-2` |
 | Engine 3, the migration drill | `ia-engine-3` |
-| killer, one per finding | `ia-killer` |
+| killer, one per UNIQUE finding (after the dedupe on a money diff) | `ia-killer` |
 | the one worker that fixes | `ia-worker` |
 | an inventory, a census table, a regenerated document | `ia-census` |
 
 If the project defines no such agent, the spawn fails with «agent type not
 found»: say so in the report and stop that role — do not fall back silently.
+
+### A money diff is read by area, not by charter (1.4.0)
+
+When the slice touches `money_paths` and the config carries `money_review`,
+Engine 1 does NOT spawn one reviewer per charter. Each charter belongs to
+exactly one AREA of `money_review.areas`, and each area is read by ONE agent
+spawned with `subagent_type` = `money_review.reader`, carrying in its prompt
+the range, its area, and that area's charters verbatim from `charters.md` —
+the charters stay the checklist, the reader is who walks it.
+
+| | SMALL money diff | FULL money diff |
+|---|---|---|
+| readers | the areas the diff touches — two at most; a third is named «for the night» | every area |
+| Engine 2 | not run, and the report says so | run |
+| Engine 3 | when the slice has a migration | in full |
+| killers | ONE over the findings | one per UNIQUE finding |
+
+`node bin/plan.mjs --range <base>..<head>` prints that plan — the agents it
+would spawn and the model each definition names — before a single agent is
+spent, and exits 1 if a money plan would put anything but Opus on the diff.
+
+**Dedupe before the killers.** On a money diff the main session merges the
+readers' and engines' findings BY ROOT CAUSE before the killer round: one
+mechanism in one place is one finding, however many readers saw it from
+however many sides (`WHERE`, the write anchor, is what they are merged on).
+One killer per unique finding — never one per report line. The run records the
+three figures: `dedupe: { raw, unique, killers }`.
+
+A review of a diff that touches no money path is unchanged: `ia-reviewer`, one
+per charter.
 
 ## Engine 2 — sweep over reachable states
 

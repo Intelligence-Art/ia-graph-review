@@ -22,6 +22,17 @@ does not exist. A renamed file would otherwise stop triggering Engine 2 silently
 — the exact failure the sentinel rule exists to prevent, one level up. Copy the
 guard into the consuming repository's test suite; it runs in seconds.
 
+## money_review — who reads a money diff (1.4.0, optional)
+
+`reader` — the agent definition every area's reader is spawned by; `model` must
+be `opus`. `areas` — each with a `name`, its `charters` (numbers from
+`charters.md`) and the `paths` whose files belong to it. **Every charter belongs
+to exactly one area**: the self-check fails on a charter in none (it would
+never be read on a money diff) and on a charter in two (read twice, paid twice).
+`small` — the bounds of a small money diff (`max_source_files`,
+`max_migrations`). Without this block a money diff is read by the charter
+fan-out, as before.
+
 ## test_command
 
 Must carry its own preconditions. If the suite needs a real database, a seeded
