@@ -144,7 +144,7 @@ the charters stay the checklist, the reader is who walks it.
 
 | | SMALL money diff | FULL money diff |
 |---|---|---|
-| readers | the areas the diff touches — two at most; a third is named «for the night» | every area |
+| readers | EVERY area the diff touches — no touched area is left unread | every area |
 | Engine 2 | not run, and the report says so | run |
 | Engine 3 | when the slice has a migration | in full |
 | killers | ONE over the findings | one per UNIQUE finding |

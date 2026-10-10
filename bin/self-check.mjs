@@ -22,6 +22,7 @@
  *   node bin/self-check.mjs --skill DIR  # also validate the skill's manifests
  */
 
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
@@ -305,6 +306,7 @@ function checkState(config) {
       continue;
     }
     for (const what of moneyRunProblems(run)) problem(path, `run "${name}" ${what}`);
+    for (const what of unreadAreaProblems(run, areasOfRange(run, config))) problem(path, `run "${name}" ${what}`);
   }
 
   notes.push(
@@ -335,6 +337,38 @@ export function moneyRunProblems(run) {
   if (d.unique > d.raw) out.push(`records ${d.unique} unique findings out of ${d.raw} raw — the dedupe cannot add findings`);
   if (d.killers > d.unique) out.push(`spawned ${d.killers} killers for ${d.unique} unique findings — one killer per UNIQUE finding, never one per report line`);
   return out;
+}
+
+/**
+ * EVERY TOUCHED AREA IS READ — 1.4.1. A money run names the areas its diff
+ * touched (`areas_touched`) and each reader names its `area`; an area touched
+ * and not read fails. `touchedByRange` is what the run's own `range` touches
+ * by the config's paths, when git can still resolve it — so a run cannot pass
+ * by naming fewer areas than its diff has.
+ */
+export function unreadAreaProblems(run, touchedByRange = null) {
+  if (run.money !== true) return [];
+  const named = Array.isArray(run.areas_touched) ? run.areas_touched.filter((key) => typeof key === "string") : null;
+  if (!named || named.length === 0) return ["is a money run that does not name the areas its diff touched — record areas_touched"];
+  const out = [];
+  const read = new Set((Array.isArray(run.agents) ? run.agents : []).map((agent) => agent?.area).filter(Boolean));
+  for (const key of new Set([...named, ...(touchedByRange ?? [])])) {
+    if (!named.includes(key)) out.push(`does not name area ${key}, which its range touches`);
+    if (!read.has(key)) out.push(`leaves area ${key} unread — a money diff is read by the readers of EVERY area it touches`);
+  }
+  return out;
+}
+
+/** The areas a run's `range` touches by the config's paths; null when there is no range or git cannot resolve it. */
+function areasOfRange(run, config) {
+  const areas = config?.money_review?.areas;
+  if (!areas || typeof run.range !== "string" || !/^[0-9a-f]{7,40}\.\.[0-9a-f]{7,40}$/.test(run.range)) return null;
+  try {
+    const files = execFileSync("git", ["diff", "--name-only", run.range], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).split("\n").filter(Boolean);
+    return Object.entries(areas).filter(([, area]) => files.some((file) => (area?.paths ?? []).some((prefix) => file.startsWith(prefix)))).map(([key]) => key);
+  } catch {
+    return null;
+  }
 }
 
 /* ──────────────────────── 5. quarantined regressions ─────────────────────── */

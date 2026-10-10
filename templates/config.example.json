@@ -60,7 +60,7 @@
     "small": {
       "max_source_files": 5,
       "max_migrations": 1,
-      "readers": "the areas the diff touches, two at most — the third is named «for the night»",
+      "readers": "every area the diff touches — no touched area is left unread",
       "engine_2": false,
       "killers": 1
     },

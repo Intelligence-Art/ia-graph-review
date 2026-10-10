@@ -17,6 +17,11 @@
  * `money_review.reader` per AREA, carrying that area's charters — never one
  * Sonnet reviewer per charter. Exit 1 when a money plan would spawn an agent
  * whose definition does not say `model: opus`.
+ *
+ * A SMALL MONEY DIFF IS READ BY THE READERS OF EVERY AREA IT TOUCHES (1.4.1):
+ * no cap, nothing left «for the night». `--readers R1,R2` names the readers
+ * the caller means to spawn; exit 1 when they leave a touched area unread, or
+ * when a money diff falls under no area at all.
  */
 
 import { execFileSync } from "node:child_process";
@@ -56,6 +61,8 @@ const money = moneyFiles.length > 0;
 
 const plan = { range: range ?? null, files: files.length, source_files: sourceFiles.length, money, money_files: moneyFiles.length, sentinel_files: sentinelFiles.length, migrations: migrations.length, size: null, why: "", agents: [], notes: [] };
 const spawn = (role, agent, count, extra = {}) => plan.agents.push({ role, agent, model: modelOf(agent), count, ...extra });
+/** Touched areas of a money diff that nobody would read — each one fails the plan. */
+const unread = [];
 
 if (money && config.money_review) {
   const m = config.money_review;
@@ -71,14 +78,21 @@ if (money && config.money_review) {
         : `FULL by the count: ${sourceFiles.length} source file(s), ${migrations.length} migration(s)`;
 
   const touched = Object.entries(m.areas).map(([key, area]) => ({ key, area, files: files.filter((file) => under(file, area.paths)).length }));
-  const readers = plan.size === "full" ? touched : [...touched].filter((t) => t.files > 0).sort((a, b) => b.files - a.files).slice(0, 2);
+  // A SMALL money diff is read by the readers of EVERY area it touches (1.4.1):
+  // no touched area is cut and none is left «for the night».
+  const readers = plan.size === "full" ? touched : touched.filter((t) => t.files > 0);
+  plan.areas_touched = touched.filter((t) => t.files > 0).map((t) => t.key);
   for (const reader of readers) {
-    spawn(`reader ${reader.key} — ${reader.area.name}`, m.reader, 1, { charters: reader.area.charters, files_in_area: reader.files });
+    spawn(`reader ${reader.key} — ${reader.area.name}`, m.reader, 1, { area: reader.key, charters: reader.area.charters, files_in_area: reader.files });
   }
-  if (plan.size === "small") {
-    const left = touched.filter((t) => t.files > 0 && !readers.includes(t));
-    for (const t of left) plan.notes.push(`for the night: area ${t.key} (${t.area.name}) — ${t.files} file(s) of this diff, not read by a SMALL run`);
-    if (readers.length === 0) plan.notes.push("no area's paths match this diff — name the area by hand");
+  if (readers.length === 0) unread.push("no area's paths match this money diff — nobody would read it; add the path to an area of money_review");
+  // `--readers R1,R2` — the readers the caller means to spawn (or did spawn):
+  // the plan fails when they leave a touched area unread.
+  if (value("--readers") !== undefined) {
+    const named = value("--readers").split(",").map((key) => key.trim()).filter(Boolean);
+    for (const reader of readers) {
+      if (!named.includes(reader.key)) unread.push(`area ${reader.key} (${reader.area.name}) — ${reader.files} file(s) of this diff — is left unread by --readers ${named.join(",") || "(none)"}`);
+    }
   }
   if (plan.size === "full") spawn("Engine 2 — the sweep over reachable states", "ia-engine-2", 1);
   else plan.notes.push("Engine 2 is not run on a SMALL money diff — say so in the report (ia-money-pass 6.5)");
@@ -103,6 +117,7 @@ if (money && config.money_review) {
 
 const wrong = money && config.money_review ? plan.agents.filter((agent) => agent.model !== "opus") : [];
 for (const agent of wrong) plan.notes.push(`✖ ${agent.agent} is ${agent.model ?? "undefined"} — a money diff is read by Opus only`);
+for (const what of unread) plan.notes.push(`✖ ${what} — a money diff is read by the readers of EVERY area it touches`);
 
 if (flag("--json")) {
   console.log(JSON.stringify(plan, null, 2));
@@ -118,4 +133,4 @@ if (flag("--json")) {
   for (const row of rows) console.log(line(row));
   if (plan.notes.length) console.log(`\n${plan.notes.map((note) => `- ${note}`).join("\n")}`);
 }
-process.exit(wrong.length ? 1 : 0);
+process.exit(wrong.length || unread.length ? 1 : 0);

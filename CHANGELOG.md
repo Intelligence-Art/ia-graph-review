@@ -4,6 +4,19 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] — 2026-10-10
+
+### Changed
+
+- **A small money diff is read by the readers of EVERY area it touches.** The
+  rule «two readers at most, a third area for the night» is gone.
+- **`bin/plan.mjs`** prints `areas_touched`, takes `--readers R1,R2` and exits
+  1 when the readers named leave a touched area unread, or when a money diff
+  falls under no area.
+- **Self-check:** a money run records `areas_touched` and each reader its
+  `area`; a touched area with no reader fails, and so does a run that names
+  fewer areas than its recorded `range` touches.
+
 ## [1.4.0] — 2026-10-10
 
 ### Added

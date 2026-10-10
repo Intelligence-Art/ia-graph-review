@@ -50,9 +50,11 @@ that is not Opus, and one with more killers than unique findings:
 ```json
 {
   "money": true,
+  "range": "<base>..<head>",
+  "areas_touched": ["R1", "R2"],
   "agents": [
-    { "role": "reader R1", "agent": "ia-money-reader", "model": "opus", "count": 1, "tokens": 0 },
-    { "role": "reader R2", "agent": "ia-money-reader", "model": "opus", "count": 1, "tokens": 0 },
+    { "role": "reader R1", "area": "R1", "agent": "ia-money-reader", "model": "opus", "count": 1, "tokens": 0 },
+    { "role": "reader R2", "area": "R2", "agent": "ia-money-reader", "model": "opus", "count": 1, "tokens": 0 },
     { "role": "Engine 2", "agent": "ia-engine-2", "model": "opus", "count": 1, "tokens": 0 },
     { "role": "killer", "agent": "ia-killer", "model": "opus", "count": 4, "tokens": 0 }
   ],
@@ -62,6 +64,11 @@ that is not Opus, and one with more killers than unique findings:
 
 `tokens` is recorded per role, never as one merged figure — it is what makes
 two ways of reading a money diff comparable.
+
+**Every touched area is read (1.4.1).** A money run names `areas_touched` and
+each reader its `area`; the self-check fails a run that leaves a touched area
+without a reader, and — when the run carries its `range` and git still
+resolves it — a run that names fewer areas than its range touches.
 
 ## What each entry is for
 

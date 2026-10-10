@@ -24,8 +24,9 @@ When the slice touches `money_paths` and the config carries `money_review`,
 steps 2 and 3 are replaced:
 
 2m. **Pick the areas.** `full` reads every area of `money_review.areas`; a small
-    money diff reads the areas its files fall under (`paths`), two at most, and
-    names any third in the report's «for the night» line.
+    money diff reads EVERY area its files fall under (`paths`) — no cap, and no
+    touched area is left «for the night» (1.4.1). `bin/plan.mjs --readers R1,R2`
+    fails when the readers named leave a touched area unread.
 3m. **Spawn one agent per area, in parallel, with fresh context** — each with
     `subagent_type: <money_review.reader>`, and in its prompt: the range, its
     ONE area, and every charter of that area verbatim from `charters.md`. No
